@@ -8,7 +8,7 @@ __all__ = ["EventFD"]
 class EventFD:
     """Class implementing event objects that has a fd that can be selected.
 
-    This event class implements the same functions as a regular Event but it
+    This EventFD class implements the same functions as a regular Event but it
     has a file descriptor. The file descriptor can be accessed using the fileno function.
     This event can be passed to select, poll and it will block until the event will be set.
     """
