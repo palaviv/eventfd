@@ -115,6 +115,11 @@ class TestEventFD(unittest.TestCase):
         self.assertAlmostEqual(time.time() - start, 1, delta=0.05)
         self.assertEqual(self.event.is_set(), True)
 
+    def test_wait_return_internal_flag(self):
+        self.assertEqual(self.event.wait(timeout=1), False)
+        self.event.set()
+        self.assertEqual(self.event.wait(timeout=1), True)
+
 
 if __name__ == "__main__":
     unittest.main()

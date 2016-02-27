@@ -63,6 +63,7 @@ class EventFD:
         if not self._flag:
             ret = select.select([self], [], [], timeout)
             assert ret[0] in [[self], []]
+        return self._flag
 
     def fileno(self):
         """Return a file descriptor that can be selected.
