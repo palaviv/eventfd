@@ -3,3 +3,5 @@ __pycache__
 _build/
 eventfd.egg-info/
 .tox/
+build/
+dist/
