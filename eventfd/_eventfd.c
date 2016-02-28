@@ -22,10 +22,10 @@ static PyMethodDef EventFDMethods[] =
      {NULL, NULL, 0, NULL}
 };
 
-
+#if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef eventfdmodule = {
    PyModuleDef_HEAD_INIT,
-   "eventfd",   /* name of module */
+   "_eventfd_c",   /* name of module */
    NULL, /* module documentation, may be NULL */
    -1,       /* size of per-interpreter state of the module,
                 or -1 if the module keeps state in global variables. */
@@ -35,6 +35,13 @@ static struct PyModuleDef eventfdmodule = {
 
 PyMODINIT_FUNC
 PyInit__eventfd_c(void)
+#else
+PyMODINIT_FUNC init_eventfd_c(void)
+#endif
 {
+#if PY_MAJOR_VERSION >= 3
     return PyModule_Create(&eventfdmodule);
+#else
+    Py_InitModule("_eventfd_c",EventFDMethods);
+#endif
 }

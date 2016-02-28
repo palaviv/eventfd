@@ -12,7 +12,7 @@ except ImportError:
     HAVE_C_EVENTFD = False
 
 
-class BaseEventFD:
+class BaseEventFD(object):
     """Class implementing event objects that has a fd that can be selected.
 
     This EventFD class implements the same functions as a regular Event but it
