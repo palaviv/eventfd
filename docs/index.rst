@@ -20,20 +20,47 @@ and can be used to stop the select/poll when signaled.
 .. warning::
    EventFD currently does not support the Windows operating system
 
+.. note::
+   EventFD use the linux eventfd but is not a python binding for eventfd.
+   You might want to try:
+
+   * https://pypi.python.org/pypi/linuxfd/
+   * https://pypi.python.org/pypi/butter/
+
 
 Event Objects
 -------------
 
-.. autoclass:: EventFD
+The :class:`EventFD` class is currently implemented with linux eventfd or :py:meth:`os.pipe`.
+the :class:`EventFD` class inherits from the :class:`eventfd._eventfd.BaseEventFD` class.
+
+
+.. autoclass:: eventfd._eventfd.BaseEventFD
    :members:
 
 
 EXAMPLES
 ========
 
-we will implement :py:class:`socketserver.TCPServer` without polling using :class:`EventFD`:
+We will implement :py:class:`socketserver.TCPServer` without polling using :class:`EventFD`:
 
    .. literalinclude:: ../server.py
+
+
+Obtaining the Module
+====================
+
+This module can be installed directly from the `Python Package Index`_ with
+pip_::
+
+    pip install eventfd
+
+Alternatively, you can download and unpack it manually from the `eventfd
+PyPI page`_.
+
+.. _Python Package Index: http://pypi.python.org
+.. _pip: http://www.pip-installer.org
+.. _eventfd pypi page: http://pypi.python.org/pypi/eventfd
 
 
 Development and Support
@@ -45,6 +72,22 @@ Problems and suggested improvements can be posted to the `issue tracker`_.
 
 .. _Github: https://github.com/palaviv/eventfd
 .. _issue tracker: https://github.com/palaviv/eventfd/issues
+
+
+Release History
+---------------
+
+0.2 (TBD)
+~~~~~~~~~
+
+* Using linux eventfd where eventfd is avaiable
+* Travis CI using tox
+
+
+0.1 (27-02-2016)
+~~~~~~~~~~~~~~~~
+
+* EventFD using pipe.
 
 
 Indices and tables

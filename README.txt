@@ -8,6 +8,5 @@ Please see the example in server.py for a use case of this class.
 Planed feature's
 ================
 
-1. Use linux eventfd instead of pipe where eventfd is available.
-2. Add a windows compatible implementation
+1. Add a windows compatible implementation
 
