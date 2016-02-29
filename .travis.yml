@@ -1,6 +1,13 @@
+sudo: false
+cache:
+  directories:
+    - $HOME/.cache/pip
 language: python
 python:
   - "2.7"
   - "3.4"
 
-script: python test_eventfd.py
+install:
+  - pip install tox
+
+script: tox
