@@ -4,12 +4,14 @@ import select
 
 __all__ = ["EventFD"]
 
-
-try:
-    from eventfd._eventfd_c import eventfd
-    HAVE_C_EVENTFD = True
-except ImportError:
+if os.environ.get('EVENTFD_PUREPYTHON'):
     HAVE_C_EVENTFD = False
+else:
+    try:
+        from eventfd._eventfd_c import eventfd
+        HAVE_C_EVENTFD = True
+    except ImportError:
+        HAVE_C_EVENTFD = False
 
 
 class BaseEventFD(object):
