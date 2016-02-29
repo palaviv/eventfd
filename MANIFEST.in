@@ -1,0 +1,2 @@
+include *.py *.txt
+recursive-include docs *.rst *.py make.bat Makefile
