@@ -3,7 +3,7 @@ from setuptools import setup, Extension
 
 setup(
     name='eventfd',
-    version=0.1,
+    version=open('VERSION.txt').read().strip(),
     packages=['eventfd'],
     license='Simplified BSD License',
     description='threading.Event like class that has a file descriptor and can be used in select/poll',
