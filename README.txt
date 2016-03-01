@@ -4,9 +4,3 @@ Online documentation can be found at http://eventfd.readthedocs.org/.
 
 Please see the example in server.py for a use case of this class.
 
-
-Planed feature's
-================
-
-1. Add a windows compatible implementation
-
