@@ -4,7 +4,7 @@ import select
 
 __all__ = ["EventFD"]
 
-if os.environ.get('EVENTFD_PUREPYTHON'):
+if os.environ.get('EVENTFD_PUREPYTHON') or os.name == "nt":
     HAVE_C_EVENTFD = False
 else:
     try:
@@ -29,6 +29,12 @@ class BaseEventFD(object):
         self._read_fd = None
         self._write_fd = None
 
+    def _read(self, len):
+        return os.read(self._read_fd, len)
+
+    def _write(self, data):
+        os.write(self._write_fd, data)
+
     def is_set(self):
         """Return true if and only if the internal flag is true."""
         return self._flag
@@ -42,7 +48,7 @@ class BaseEventFD(object):
         """
         if self._flag:
             self._flag = False
-            assert os.read(self._read_fd, len(self._DATA)) == self._DATA
+            assert self._read(len(self._DATA)) == self._DATA
 
     def set(self):
         """Set the internal flag to true.
@@ -53,7 +59,7 @@ class BaseEventFD(object):
         """
         if not self._flag:
             self._flag = True
-            os.write(self._write_fd, self._DATA)
+            self._write(self._DATA)
 
     def wait(self, timeout=None):
         """Block until the internal flag is true.
@@ -86,37 +92,64 @@ class BaseEventFD(object):
         """Closes the file descriptors"""
         raise NotImplementedError
 
+if os.name != "nt":
 
-class PipeEventFD(BaseEventFD):
+    class PipeEventFD(BaseEventFD):
 
-    _DATA = b"A"
-
-    def __init__(self):
-        super(PipeEventFD, self).__init__()
-        self._read_fd, self._write_fd = os.pipe()
-
-    def __del__(self):
-        os.close(self._read_fd)
-        os.close(self._write_fd)
-
-EventFD = PipeEventFD
-
-if HAVE_C_EVENTFD:
-
-    class CEventFD(BaseEventFD):
-
-        _DATA = b'\x00\x00\x00\x00\x00\x00\x00\x01'
+        _DATA = b"A"
 
         def __init__(self):
-            super(CEventFD, self).__init__()
-            self._write_fd = self._read_fd = eventfd()
+            super(PipeEventFD, self).__init__()
+            self._read_fd, self._write_fd = os.pipe()
 
         def __del__(self):
+            os.close(self._read_fd)
             os.close(self._write_fd)
 
-    EventFD = CEventFD
+    EventFD = PipeEventFD
 
+    if HAVE_C_EVENTFD:
 
+        class CEventFD(BaseEventFD):
 
+            _DATA = b'\x00\x00\x00\x00\x00\x00\x00\x01'
 
+            def __init__(self):
+                super(CEventFD, self).__init__()
+                self._write_fd = self._read_fd = eventfd()
 
+            def __del__(self):
+                os.close(self._write_fd)
+
+        EventFD = CEventFD
+
+else:  # windows
+    import socket
+
+    class SocketEventFD(BaseEventFD):
+
+        _DATA = b'A'
+
+        def __init__(self):
+            super(SocketEventFD, self).__init__()
+            temp_fd = socket.socket()
+            temp_fd.bind(("127.0.0.1", 0))
+            temp_fd.listen(1)
+            self._read_fd = socket.create_connection(temp_fd.getsockname())
+            self._write_fd, _ = temp_fd.accept()
+            temp_fd.close()
+
+        def _read(self, len):
+            return self._read_fd.recv(len)
+
+        def _write(self, data):
+            self._write_fd.send(data)
+
+        def fileno(self):
+            return self._read_fd.fileno()
+
+        def __del__(self):
+            self._read_fd.close()
+            self._write_fd.close()
+
+    EventFD = SocketEventFD
