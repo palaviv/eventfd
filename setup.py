@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 from setuptools import setup, Extension
+import os
+
+extensions = []
+
+if os.name != "nt":
+    extensions.append(Extension("eventfd._eventfd_c", sources=["eventfd/_eventfd.c"]))
 
 setup(
     name='eventfd',
@@ -11,5 +17,5 @@ setup(
     author='Aviv Palivoda',
     author_email='palaviv@gmail.com',
     url='http://eventfd.readthedocs.org',
-    ext_modules=[Extension("eventfd._eventfd_c", sources=["eventfd/_eventfd.c"])]
+    ext_modules=extensions
 )
