@@ -77,8 +77,8 @@ Problems and suggested improvements can be posted to the `issue tracker`_.
 Release History
 ---------------
 
-0.2 (TBD)
-~~~~~~~~~
+0.2 (01-03-2016)
+~~~~~~~~~~~~~~~~
 
 * Using linux eventfd where eventfd is avaiable.
 * Travis CI using tox.
