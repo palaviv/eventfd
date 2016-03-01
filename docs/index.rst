@@ -17,8 +17,8 @@ a thread that is currently waiting on a other events to happen using select/poll
 The :class:`EventFD` class provides a extension to the :py:class:`threading.Event` class
 and can be used to stop the select/poll when signaled.
 
-.. warning::
-   EventFD currently does not support the Windows operating system
+.. note::
+   EventFD support the windows operating system but it is not tested in the CI.
 
 .. note::
    EventFD use the linux eventfd but is not a python binding for eventfd.
@@ -80,8 +80,9 @@ Release History
 0.2 (TBD)
 ~~~~~~~~~
 
-* Using linux eventfd where eventfd is avaiable
-* Travis CI using tox
+* Using linux eventfd where eventfd is avaiable.
+* Travis CI using tox.
+* Support for windows using socket (only sockets can be selected in windows).
 
 
 0.1 (27-02-2016)
