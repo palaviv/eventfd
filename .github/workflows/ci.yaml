@@ -7,8 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        pure-python: [true, false]
 
     steps:
     - uses: actions/checkout@v2
@@ -20,5 +22,7 @@ jobs:
       run: |
         python setup.py install
     - name: Test
+      env:
+        EVENTFD_PUREPYTHON: ${{ matrix.pure-python }}
       run: |
         python test/test_eventfd.py
