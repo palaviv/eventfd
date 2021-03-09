@@ -19,6 +19,14 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Build wheel
+      if: ${{ matrix.os != 'windows-latest' }}
+      run: |
+        python setup.py bdist_wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheel-${{ matrix.os }}
+        path: dist
     - name: Install eventfd
       run: |
         python setup.py install
