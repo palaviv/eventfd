@@ -23,6 +23,8 @@ jobs:
       if: ${{ matrix.os != 'windows-latest' }}
       run: |
         python setup.py bdist_wheel
+    - name: Upload wheel
+      if: ${{ matrix.os != 'windows-latest' }}
       uses: actions/upload-artifact@v2
       with:
         name: wheel-${{ matrix.os }}
