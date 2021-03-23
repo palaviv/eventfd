@@ -168,4 +168,13 @@ else:  # windows
         def fileno(self):
             return self._read_fd.fileno()
 
+        def close(self):
+            if self._read_fd is None:
+                return  # Already closed
+
+            self._selector.close()
+            self._write_fd.close()
+            self._read_fd.close()
+            self._read_fd = self._write_fd = None
+
     EventFD = SocketEventFD
