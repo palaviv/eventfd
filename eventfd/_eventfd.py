@@ -106,7 +106,7 @@ class BaseEventFD(object):
         self._read_fd = self._write_fd = None
         os.close(write_fd)
         if read_fd != write_fd:
-            os.close(write_fd)
+            os.close(read_fd)
 
     def __del__(self):
         self.close()
