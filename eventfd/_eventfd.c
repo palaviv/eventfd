@@ -6,7 +6,7 @@ static PyObject * _eventfd(PyObject *self) {
     int result;
 
     Py_BEGIN_ALLOW_THREADS
-    result = eventfd(0, 0);
+    result = eventfd(0, EFD_NONBLOCK);
     Py_END_ALLOW_THREADS
     if (result == -1)
     {

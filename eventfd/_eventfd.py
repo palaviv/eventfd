@@ -1,5 +1,6 @@
 import os
-import select
+import selectors
+import sys
 
 
 __all__ = ["EventFD"]
@@ -23,11 +24,13 @@ class BaseEventFD(object):
     """
 
     _DATA = None
+    _read_fd_is_write_fd = False
 
-    def __init__(self):
-        self._flag = False
-        self._read_fd = None
-        self._write_fd = None
+    def __init__(self, read_fd, write_fd):
+        self._read_fd = read_fd
+        self._write_fd = write_fd
+        self._selector = selectors.DefaultSelector()
+        self._selector.register(read_fd, selectors.EVENT_READ)
 
     def _read(self, len):
         return os.read(self._read_fd, len)
@@ -37,7 +40,7 @@ class BaseEventFD(object):
 
     def is_set(self):
         """Return true if and only if the internal flag is true."""
-        return self._flag
+        return self.wait(timeout=0)
 
     def clear(self):
         """Reset the internal flag to false.
@@ -46,9 +49,16 @@ class BaseEventFD(object):
         set the internal flag to true again.
 
         """
-        if self._flag:
-            self._flag = False
-            assert self._read(len(self._DATA)) == self._DATA
+        while True:
+            # Pull data from the buffer until it is empty
+            try:
+                b = self._read(4096)
+            except BlockingIOError:
+                break  # Buffer is empty (i.e. event is cleared)
+            if b == b'':
+                # I think we always get BlockingIOError, but it's easy to check
+                # for a successful but empty read too.
+                break
 
     def set(self):
         """Set the internal flag to true.
@@ -57,9 +67,10 @@ class BaseEventFD(object):
         that call wait() once the flag is true will not block at all.
 
         """
-        if not self._flag:
-            self._flag = True
+        try:
             self._write(self._DATA)
+        except BlockingIOError:
+            pass  # Buffer is already full (so event is set)
 
     def wait(self, timeout=None):
         """Block until the internal flag is true.
@@ -76,10 +87,7 @@ class BaseEventFD(object):
         True except if a timeout is given and the operation times out.
 
         """
-        if not self._flag:
-            ret = select.select([self], [], [], timeout)
-            assert ret[0] in [[self], []]
-        return self._flag
+        return bool(self._selector.select(timeout=timeout))
 
     def fileno(self):
         """Return a file descriptor that can be selected.
@@ -88,9 +96,20 @@ class BaseEventFD(object):
         """
         return self._read_fd
 
-    def __del__(self):
+    def close(self):
         """Closes the file descriptors"""
-        raise NotImplementedError
+        if self._read_fd is None:
+            return  # Already closed
+
+        self._selector.close()
+        read_fd, write_fd = self._read_fd, self._write_fd
+        self._read_fd = self._write_fd = None
+        os.close(write_fd)
+        if read_fd != write_fd:
+            os.close(read_fd)
+
+    def __del__(self):
+        self.close()
 
 if os.name != "nt":
 
@@ -99,12 +118,8 @@ if os.name != "nt":
         _DATA = b"A"
 
         def __init__(self):
-            super(PipeEventFD, self).__init__()
-            self._read_fd, self._write_fd = os.pipe()
-
-        def __del__(self):
-            os.close(self._read_fd)
-            os.close(self._write_fd)
+            read_fd, write_fd = os.pipe2(os.O_NONBLOCK)
+            super(PipeEventFD, self).__init__(read_fd, write_fd)
 
     EventFD = PipeEventFD
 
@@ -112,14 +127,22 @@ if os.name != "nt":
 
         class CEventFD(BaseEventFD):
 
-            _DATA = b'\x00\x00\x00\x00\x00\x00\x00\x01'
+            _DATA = (1).to_bytes(8, byteorder=sys.byteorder)
 
             def __init__(self):
-                super(CEventFD, self).__init__()
-                self._write_fd = self._read_fd = eventfd()
+                read_fd = write_fd = eventfd()
+                super(CEventFD, self).__init__(read_fd, write_fd)
 
-            def __del__(self):
-                os.close(self._write_fd)
+            def clear(self):
+                """Reset the internal flag to false.
+
+                Subsequently, threads calling wait() will block until set() is called to
+                set the internal flag to true again.
+                """
+                try:
+                    self._read(8)  # This resets the counter - no need to loop
+                except BlockingIOError:
+                    pass  # The counter was already 0
 
         EventFD = CEventFD
 
@@ -131,13 +154,10 @@ else:  # windows
         _DATA = b'A'
 
         def __init__(self):
-            super(SocketEventFD, self).__init__()
-            temp_fd = socket.socket()
-            temp_fd.bind(("127.0.0.1", 0))
-            temp_fd.listen(1)
-            self._read_fd = socket.create_connection(temp_fd.getsockname())
-            self._write_fd, _ = temp_fd.accept()
-            temp_fd.close()
+            read_fd, write_fd = socket.socketpair()
+            read_fd.setblocking(False)
+            write_fd.setblocking(False)
+            super(SocketEventFD, self).__init__(read_fd, write_fd)
 
         def _read(self, len):
             return self._read_fd.recv(len)
@@ -148,8 +168,13 @@ else:  # windows
         def fileno(self):
             return self._read_fd.fileno()
 
-        def __del__(self):
-            self._read_fd.close()
+        def close(self):
+            if self._read_fd is None:
+                return  # Already closed
+
+            self._selector.close()
             self._write_fd.close()
+            self._read_fd.close()
+            self._read_fd = self._write_fd = None
 
     EventFD = SocketEventFD
