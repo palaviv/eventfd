@@ -154,9 +154,9 @@ else:  # windows
         _DATA = b'A'
 
         def __init__(self):
-            read_fd, write_fd = socket.socketpair(
-                type=socket.SOCK_STREAM | socket.SOCK_NONBLOCK
-            )
+            read_fd, write_fd = socket.socketpair()
+            read_fd.set_blocking(False)
+            write_fd.set_blocking(False)
             super(SocketEventFD, self).__init__(read_fd, write_fd)
 
         def _read(self, len):
