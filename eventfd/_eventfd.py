@@ -155,8 +155,8 @@ else:  # windows
 
         def __init__(self):
             read_fd, write_fd = socket.socketpair()
-            read_fd.set_blocking(False)
-            write_fd.set_blocking(False)
+            read_fd.setblocking(False)
+            write_fd.setblocking(False)
             super(SocketEventFD, self).__init__(read_fd, write_fd)
 
         def _read(self, len):
