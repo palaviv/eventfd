@@ -24,7 +24,7 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' && ! matrix.pure-python }}
       run: |
         python -m pip install wheel
-        python setup.py bdist_wheel
+        python setup.py bdist_wheel -p manylinux1_x86_64
     - name: Upload wheel
       if: ${{ matrix.os == 'ubuntu-latest' && ! matrix.pure-python }}
       uses: actions/upload-artifact@v2
