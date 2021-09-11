@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from setuptools import setup, Extension
-import os
+import sys
 
 extensions = []
 
-if os.name != "nt":
+if sys.platform.startswith('linux'):
     extensions.append(Extension("eventfd._eventfd_c", sources=["eventfd/_eventfd.c"]))
 
 setup(
