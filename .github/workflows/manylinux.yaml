@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build wheel
-      uses: RalfG/python-wheels-manylinux-build@v0.3.4-manylinux2010_x86_64:2021-02-06-3d322a5
+      uses: cielavenir/python-wheels-manylinux-build@v0.3.4-manylinux2010_x86_64_py2
       with:
         python-versions: "cp27-cp27mu cp35-cp35m cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39"
     - name: Upload wheel
